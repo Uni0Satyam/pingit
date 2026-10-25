@@ -15,6 +15,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuGroup
 } from "./ui/dropdown-menu";
 import {
   AlertDialog,
@@ -29,14 +31,42 @@ import {
 } from "./ui/alert-dialog";
 import { useState } from "react";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
+import {
+  Avatar,
+  AvatarBadge,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
+
+const features = [
+  {
+    title: "Plug & Play",
+    desc: "Add the chatbot to your site in single script.",
+  },
+  {
+    title: "Admin Controlled",
+    desc: "You controls exactly what AI knows and answers.",
+  },
+  {
+    title: "Always Online",
+    desc: "Your customers get instant support 24/7.",
+  },
+];
+
 
 const handleLogin = () => {
   window.location.href = "/api/auth/login";
 };
 
-const HomeClient = ({ email, profile }: { email?: string; profile?: any }) => {
-  const firstName = profile?.firstName[0].toUpperCase();
-  const lastName = profile?.lastName[0].toUpperCase();
+const handleLogout = () => {
+  window.location.href = "/api/auth/logout";
+}
+
+const HomeClient = ({ userProfile }: { userProfile?: any }) => {
+  const router = useRouter();
+  const firstName = userProfile?.firstName[0].toUpperCase();
+  const lastName = userProfile?.lastName[0].toUpperCase();
   const [openDialog, setOpenDialog] = useState(false);
 
   return (
@@ -52,7 +82,7 @@ const HomeClient = ({ email, profile }: { email?: string; profile?: any }) => {
             <div className="text-lg tracking-tight font-semibold">
               Support <span className="text-zinc-400">Ease</span>
             </div>
-            {profile ? (
+            {userProfile ? (
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger
@@ -63,29 +93,32 @@ const HomeClient = ({ email, profile }: { email?: string; profile?: any }) => {
                     }
                   />
                   <DropdownMenuContent>
-                    <DropdownMenuItem>
-                      <UserIcon />
-                      Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <CreditCardIcon />
-                      Billing
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <SettingsIcon />
-                      Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setOpenDialog(true);
-                      }}
-                    >
-                      <LogOutIcon />
-                      Log out
-                    </DropdownMenuItem>
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                      <DropdownMenuItem>
+                        <UserIcon />
+                        Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <CreditCardIcon />
+                        Billing
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <SettingsIcon />
+                        Settings
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setOpenDialog(true);
+                        }}
+                      >
+                        <LogOutIcon />
+                        Log out
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -107,7 +140,7 @@ const HomeClient = ({ email, profile }: { email?: string; profile?: any }) => {
                       <AlertDialogCancel variant="outline">
                         Stay logged in
                       </AlertDialogCancel>
-                      <AlertDialogAction variant="destructive">
+                      <AlertDialogAction variant="destructive" onClick={handleLogout}>
                         Logout
                       </AlertDialogAction>
                     </AlertDialogFooter>
@@ -141,8 +174,9 @@ const HomeClient = ({ email, profile }: { email?: string; profile?: any }) => {
                 customer get instant answers using your own business knowledge.
               </p>
               <div className="mt-10 flex gap-4">
-                {profile ? (
-                  <Button className="px-7 py-3 font-medium transition disabled:opacity-60 hover:cursor-pointer">
+                {userProfile ? (
+                  <Button className="px-7 py-3 font-medium transition disabled:opacity-60 hover:cursor-pointer"
+                  onClick={() => router.push("/dashboard")}>
                     Go to Dashboard
                   </Button>
                 ) : (
@@ -156,6 +190,7 @@ const HomeClient = ({ email, profile }: { email?: string; profile?: any }) => {
                 <Button
                   variant={"outline"}
                   className="px-7 py-3 transition disabled:opacity-60 hover:cursor-pointer"
+                  onClick={() => router.push("/learn-more")}
                 >
                   Learn More
                 </Button>
@@ -173,8 +208,15 @@ const HomeClient = ({ email, profile }: { email?: string; profile?: any }) => {
                   Live Chat Preview
                 </div>
                 <div className="flex w-full max-w-sm flex-col gap-8 py-12">
-                  <Bubble align="end">
+                  <Bubble align="end" className="flex items-end">
                     <BubbleContent>My order's current status</BubbleContent>
+                    <Avatar>
+                      <AvatarImage
+                        src="https://github.com/evilrabbit.png"
+                        alt="@evilrabbit"
+                      />
+                      <AvatarFallback>Evilrabbit</AvatarFallback>
+                    </Avatar>
                   </Bubble>
                   <Bubble variant="muted">
                     <BubbleContent>
@@ -182,14 +224,22 @@ const HomeClient = ({ email, profile }: { email?: string; profile?: any }) => {
                       Shiprocket. The tracking status shows it is currently in
                       transit and estimated to arrive by Tuesday, 27 October
                     </BubbleContent>
+                    <Avatar>
+                      <AvatarImage
+                        src="https://t3.ftcdn.net/jpg/05/83/74/28/240_F_583742888_L0dIi5d23qJ2rteSlXMeMDGNsnLxbkjB.jpg"
+                        alt="@bot"
+                        className="grayscale h-7 w-7"
+                      />
+                      <AvatarFallback>Bot</AvatarFallback>
+                      <AvatarBadge className="bg-green-600 dark:bg-green-800" />
+                    </Avatar>
                   </Bubble>
                   <motion.div
                     animate={{ y: [0, -12, 0] }}
                     transition={{ repeat: Infinity, duration: 3 }}
                     className="absolute -bottom-6 -right-6 w-14 h-14 rounded-full bg-black flex items-center justify-center shadow-xl text-white"
                   >
-                    {" "}
-                    <MessageCircle />{" "}
+                    <MessageCircle />
                   </motion.div>
                 </div>
               </div>
@@ -197,9 +247,41 @@ const HomeClient = ({ email, profile }: { email?: string; profile?: any }) => {
           </div>
         </section>
 
-        <section>
-          
+        <section
+          id="feature"
+          className="bg-zinc-50 py-28 px-6 border-t border-zinc-200"
+        >
+          <div>
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false }}
+              transition={{ duration: 0.5 }}
+              className="text-3xl font-semibold text-center"
+            >
+              Why Businesses Choose Us?
+            </motion.h2>
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-10">
+              {features.map((feat, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1, duration: 0.5 }}
+                  viewport={{ once: true }}
+                  className="p-8 shadow-lg border border-zinc-200 rounded-2xl"
+                >
+                  <h1 className="text-lg font-medium">{feat.title}</h1>
+                  <p className="mt-3 text-zinc-600 text-sm">{feat.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </section>
+
+        <footer className="py-10 text-center text-sm text-zinc-600">
+          &copy; {new Date().getFullYear()} Support Ease. All rights reserved
+        </footer>
       </div>
     </div>
   );

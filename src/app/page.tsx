@@ -5,9 +5,10 @@ export const instant = false;
 
 const page = async () => {
   const session = await getSession()
+  const user = session?.user;
   return (
     <>
-    <HomeClient email={session?.user?.email} profile={session?.user?.userProfile} />
+    <HomeClient userProfile={user?.userProfile} />
     </>
   )
 }
