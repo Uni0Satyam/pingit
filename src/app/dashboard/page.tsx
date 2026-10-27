@@ -1,9 +1,16 @@
-import React from 'react'
+import { getSession } from "../utils/getSession";
+import DashboardClient from "@/components/DashboardClient";
 
-const Dashboard = () => {
+export const instant = false;
+
+const Dashboard = async () => {
+  const session = await getSession();
+
   return (
-    <div>Dashboard</div>
-  )
-}
+    <>
+      <DashboardClient userProfile={session?.user?.userProfile}/>
+    </>
+  );
+};
 
 export default Dashboard;

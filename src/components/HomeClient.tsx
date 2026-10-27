@@ -1,34 +1,7 @@
 "use client";
 import { motion } from "motion/react";
 import { Button } from "./ui/button";
-import {
-  User,
-  CreditCardIcon,
-  LogOutIcon,
-  SettingsIcon,
-  UserIcon,
-  MessageCircle,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuGroup
-} from "./ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle,
-} from "./ui/alert-dialog";
+import { MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import {
@@ -38,6 +11,7 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
+import { Header } from "./layout/Header";
 
 const features = [
   {
@@ -54,109 +28,23 @@ const features = [
   },
 ];
 
-
-const handleLogin = () => {
-  window.location.href = "/api/auth/login";
-};
-
-const handleLogout = () => {
-  window.location.href = "/api/auth/logout";
-}
-
 const HomeClient = ({ userProfile }: { userProfile?: any }) => {
   const router = useRouter();
-  const firstName = userProfile?.firstName[0].toUpperCase();
-  const lastName = userProfile?.lastName[0].toUpperCase();
-  const [openDialog, setOpenDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
+  const handleLogin = () => {
+    setLoading(true);
+    window.location.href = "/api/auth/login";
+  };
 
   return (
     <div>
       <div className="min-h-screen bg-linear-to-br from-white to-zinc-50 text-zinc-900 overflow-x-hidden border-b">
-        <motion.div
-          initial={{ y: -70 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="fixed top-0 left-0 w-full z-50 bg-white/70 backdrop-blur-xl border-b border-zinc-200"
-        >
-          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div className="text-lg tracking-tight font-semibold">
-              Support <span className="text-zinc-400">Ease</span>
-            </div>
-            {userProfile ? (
-              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={
-                      <Button className="w-10 h-10 rounded-full flex items-center justify-center font-semibold hover:scale-105 transition hover:cursor-pointer">
-                        {firstName + lastName || <User size={16} />}
-                      </Button>
-                    }
-                  />
-                  <DropdownMenuContent>
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                      <DropdownMenuItem>
-                        <UserIcon />
-                        Profile
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <CreditCardIcon />
-                        Billing
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <SettingsIcon />
-                        Settings
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setOpenDialog(true);
-                        }}
-                      >
-                        <LogOutIcon />
-                        Log out
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
-                  <AlertDialogContent size="sm">
-                    <AlertDialogHeader>
-                      <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-                        <LogOutIcon />
-                      </AlertDialogMedia>
-                      <AlertDialogTitle>
-                        Log out of your account?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        You will need to log back in to access your dashboard,
-                        saved preferences, and account settings.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel variant="outline">
-                        Stay logged in
-                      </AlertDialogCancel>
-                      <AlertDialogAction variant="destructive" onClick={handleLogout}>
-                        Logout
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            ) : (
-              <Button
-                className="cursor-pointer px-5 py-2 text-sm font-medium transition disabled:opacity-60 flex items-center gap-2"
-                onClick={handleLogin}
-              >
-                Login
-              </Button>
-            )}
-          </div>
-        </motion.div>
+        <Header
+          userProfile={userProfile}
+          loading={loading}
+          onLogin={handleLogin}
+        />
 
         <section className="pt-36 pb-28 px-6">
           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
@@ -175,14 +63,17 @@ const HomeClient = ({ userProfile }: { userProfile?: any }) => {
               </p>
               <div className="mt-10 flex gap-4">
                 {userProfile ? (
-                  <Button className="px-7 py-3 font-medium transition disabled:opacity-60 hover:cursor-pointer"
-                  onClick={() => router.push("/dashboard")}>
+                  <Button
+                    className="px-7 py-3 font-medium transition disabled:opacity-60 hover:cursor-pointer"
+                    onClick={() => router.push("/dashboard")}
+                  >
                     Go to Dashboard
                   </Button>
                 ) : (
                   <Button
                     className="px-7 py-3 font-medium transition disabled:opacity-60 hover:cursor-pointer"
                     onClick={handleLogin}
+                    disabled={loading}
                   >
                     Get Started
                   </Button>
