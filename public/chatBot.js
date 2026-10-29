@@ -1,9 +1,9 @@
 (function () {
-  const api_Url = `${process.env.NEXT_PUBLIC_APP_URL}/api/chat`;
-
   const scriptTag = document.currentScript;
   const userId = scriptTag.getAttribute("data-user-id");
-  const brandUrl = `${process.env.NEXT_PUBLIC_APP_URL}`
+  const widgetUrl = new URL("/", scriptTag.src);
+  const apiUrl = new URL("/api/chat", widgetUrl).href;
+  const brandUrl = widgetUrl.href;
 
   if (!userId) {
     console.error("Pingit: User ID attribute 'data-user-id' not found on script tag.");
@@ -190,7 +190,7 @@
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
     try {
-      const response = await fetch(api_Url, {
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
