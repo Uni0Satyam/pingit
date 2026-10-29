@@ -78,7 +78,7 @@ export const Header = ({ userProfile, loading, onLogin }: HeaderProps) => {
           className="text-lg tracking-tight font-semibold cursor-pointer"
           onClick={() => router.push("/")}
         >
-          Support <span className="text-zinc-400">Ease</span>
+          ping<span className="text-zinc-400">it</span>
         </div>
         {userProfile ? (
           <div className="flex items-center gap-2">
@@ -121,7 +121,7 @@ export const Header = ({ userProfile, loading, onLogin }: HeaderProps) => {
                     <HoverCardContent className="flex w-64 flex-col gap-0.5">
                       <div className="font-semibold">Free</div>
                       <div>
-                        Only for 1st phase beta tester till 2027
+                        Only for 1st phase tester till 2027
                       </div>
                     </HoverCardContent>
                   </HoverCard>

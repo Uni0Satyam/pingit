@@ -105,9 +105,10 @@ function DashboardClient({ userProfile }: { userProfile: any }) {
       <div className="flex justify-center px-4 py-14 mt-15 bg-white">
         <motion.div className="w-full max-w-3xl rounded-2xl shadow-xl p-10">
           <div className="mb-10">
-            <h1 className="text-2xl font-semibold">ChatBot Settings</h1>
+            <h1 className="text-2xl font-semibold">Set up your pingit assistant</h1>
             <p className="text-zinc-500 mt-1">
-              Manage your AI chatbot knowledge base and business details
+              Give pingit the business details and answers it needs to help
+              your customers.
             </p>
           </div>
 
@@ -171,8 +172,7 @@ function DashboardClient({ userProfile }: { userProfile: any }) {
                     <Field orientation="horizontal">
                       <Checkbox id="push" defaultChecked disabled />
                       <FieldLabel htmlFor="push" className="font-normal">
-                        Use above data to train bot (personalized) for my
-                        business
+                        Use this information to personalize my pingit assistant
                       </FieldLabel>
                     </Field>
                   </FieldGroup>

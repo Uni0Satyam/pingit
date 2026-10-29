@@ -1,11 +1,12 @@
 (function () {
-  const api_Url = "http://localhost:3000/api/chat";
+  const api_Url = `${process.env.NEXT_PUBLIC_APP_URL}/api/chat`;
 
   const scriptTag = document.currentScript;
   const userId = scriptTag.getAttribute("data-user-id");
+  const brandUrl = `${process.env.NEXT_PUBLIC_APP_URL}`
 
   if (!userId) {
-    console.error("SupportWidget: User ID attribute 'data-user-id' not found on script tag.");
+    console.error("Pingit: User ID attribute 'data-user-id' not found on script tag.");
     return;
   }
 
@@ -13,6 +14,7 @@
 
   // 1. Create Floating Toggle Button
   const button = document.createElement("div");
+  button.id = "pingit-chat-toggle";
   button.innerHTML = "💬";
 
   Object.assign(button.style, {
@@ -39,6 +41,7 @@
 
   // 2. Create Main Chat Box Popup Window Container
   const box = document.createElement("div");
+  box.id = "pingit-chat-box";
   Object.assign(box.style, {
     position: "fixed",
     bottom: "94px",
@@ -57,6 +60,39 @@
     boxSizing: "border-box"
   });
 
+  const responsiveStyles = document.createElement("style");
+  responsiveStyles.textContent = `
+    @media (max-width: 480px) {
+      #pingit-chat-toggle {
+        right: 16px !important;
+        bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+      }
+
+      #pingit-chat-box {
+        right: 12px !important;
+        bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
+        width: calc(100vw - 24px) !important;
+        height: min(520px, calc(100dvh - 108px - env(safe-area-inset-bottom, 0px))) !important;
+        max-height: calc(100dvh - 108px - env(safe-area-inset-bottom, 0px)) !important;
+        min-height: min(220px, calc(100dvh - 108px - env(safe-area-inset-bottom, 0px))) !important;
+      }
+
+      #pingit-chat-box #chat-input {
+        font-size: 16px !important;
+      }
+    }
+
+    @media (max-width: 480px) and (max-height: 500px) {
+      #pingit-chat-box {
+        bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+        height: calc(100dvh - 84px - env(safe-area-inset-bottom, 0px)) !important;
+        max-height: calc(100dvh - 84px - env(safe-area-inset-bottom, 0px)) !important;
+        min-height: min(220px, calc(100dvh - 84px - env(safe-area-inset-bottom, 0px))) !important;
+      }
+    }
+  `;
+  document.head.appendChild(responsiveStyles);
+
   // Inject structural template HTML layouts
   box.innerHTML = `
     <div style="background:#000000; color:#ffffff; padding:14px 16px; font-size:14px; font-weight:600; display:flex; justify-content:space-between; align-items:center; box-sizing:border-box; width:100%; border-bottom:1px solid #27272a;">
@@ -67,7 +103,7 @@
       <span id="chat-close" style="cursor:pointer; font-size:16px; font-weight:normal; opacity:0.8; padding:2px 6px; user-select:none; color:#ffffff;">✕</span>
     </div>
     
-    <div id="chat-messages" style="flex:1; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; background:#f9f9f9; font-size:13.5px; line-height:1.4; box-sizing:border-box; width:100%;">
+    <div id="chat-messages" style="flex:1; min-height:0; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; background:#f9f9f9; font-size:13.5px; line-height:1.4; box-sizing:border-box; width:100%;">
       <div style="align-self:flex-start; background:#f4f4f5; color:#09090b; padding:8px 12px; border-radius:12px 12px 12px 2px; max-width:80%; box-sizing:border-box; font-family:inherit; word-break:break-word; clear:both;">
         Hello! How can we help you today?
       </div>
@@ -77,6 +113,10 @@
       <input type="text" id="chat-input" placeholder="Type a message..." required style="flex:1; padding:8px 12px; border:1px solid #e4e4e7; border-radius:8px; font-size:13.5px; outline:none; background:#ffffff; color:#000000; font-family:inherit; box-sizing:border-box; height:36px; min-width:0;" />
       <button type="submit" style="background:#000000; color:#ffffff; border:none; padding:0 16px; border-radius:8px; font-size:13.5px; cursor:pointer; font-weight:500; font-family:inherit; box-sizing:border-box; height:36px; display:inline-flex; align-items:center; justify-content:center;">Send</button>
     </form>
+
+    <div style="padding:6px 12px 8px; border-top:1px solid #f4f4f5; background:#ffffff; text-align:center; color:#71717a; font-size:10px; line-height:1.4; box-sizing:border-box;">
+      Powered by <a href="${brandUrl}" target="_blank" rel="noopener noreferrer" style="color:#18181b; font-weight:600; text-decoration:none;">pingit</a>
+    </div>
   `;
 
   document.body.appendChild(box);

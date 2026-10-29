@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toast";
 export const metadata: Metadata = {
-  title: "Support Ease",
-  description: "Get customer support chatbot in one click",
+  title: "pingit — quick answers for your customers",
+  icons: { icon: "/icon.svg" },
+  description:
+    "Meet pingit: a friendly AI support assistant that answers customer questions using your business knowledge.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
