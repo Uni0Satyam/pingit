@@ -1,4 +1,4 @@
-import mongoose, { connect } from "mongoose";
+import { connect } from "mongoose";
 
 const mongo_url = process.env.MONGODB_URI;
 

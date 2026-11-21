@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { scalekit } from "@/lib/scalekit";
-import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
-export async function GET(req: NextRequest) {
-  const cookiesStore = await cookies();
-  cookiesStore.delete("access_token")
+export async function GET(request: Request) {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
 
-  return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}`)
+  return NextResponse.redirect(new URL("/", request.url));
 }

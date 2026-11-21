@@ -1,16 +1,35 @@
 (function () {
   const scriptTag = document.currentScript;
   const userId = scriptTag.getAttribute("data-user-id");
+  const chatbotId = scriptTag.getAttribute("data-chatbot-id");
+  const supportEmail = scriptTag.getAttribute("data-business-email") || "";
+  const businessName = scriptTag.getAttribute("data-business-name") || "Customer Support";
+  const primaryColor = scriptTag.getAttribute("data-primary-color") || "#000000";
+  const welcomeMessage = scriptTag.getAttribute("data-welcome-message") || "Hello! How can we help you today?";
+  const hideBranding = scriptTag.getAttribute("data-hide-branding") === "true";
   const widgetUrl = new URL("/", scriptTag.src);
   const apiUrl = new URL("/api/chat", widgetUrl).href;
   const brandUrl = widgetUrl.href;
+  const visitorStorageKey = `pingit:visitor:${chatbotId}`;
 
-  if (!userId) {
-    console.error("Pingit: User ID attribute 'data-user-id' not found on script tag.");
+  if (!userId || !chatbotId) {
+    console.error("Pingit: Both 'data-user-id' and 'data-chatbot-id' are required on the script tag.");
     return;
   }
 
   let messageHistory = [];
+  let visitorId;
+  try {
+    visitorId =
+      sessionStorage.getItem(visitorStorageKey) ||
+      (typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    sessionStorage.setItem(visitorStorageKey, visitorId);
+  } catch (error) {
+    console.warn("Pingit: Could not persist visitor session ID.", error);
+    visitorId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
 
   // 1. Create Floating Toggle Button
   const button = document.createElement("div");
@@ -24,7 +43,7 @@
     width: "56px",
     height: "56px",
     borderRadius: "50%",
-    background: "#000000",
+    background: primaryColor,
     color: "#ffffff",
     display: "flex",
     alignItems: "center",
@@ -95,43 +114,52 @@
 
   // Inject structural template HTML layouts
   box.innerHTML = `
-    <div style="background:#000000; color:#ffffff; padding:14px 16px; font-size:14px; font-weight:600; display:flex; justify-content:space-between; align-items:center; box-sizing:border-box; width:100%; border-bottom:1px solid #27272a;">
+    <div id="chat-header" style="background:#000000; color:#ffffff; padding:14px 16px; font-size:14px; font-weight:600; display:flex; justify-content:space-between; align-items:center; box-sizing:border-box; width:100%; border-bottom:1px solid #27272a;">
       <div style="display:flex; align-items:center; gap:8px; box-sizing:border-box;">
         <span style="width:8px; height:8px; background:#22c55e; border-radius:50%; display:inline-block;"></span>
-        <span style="color:#ffffff; font-family:inherit;">Customer Support</span>
+        <span id="chat-title" style="color:#ffffff; font-family:inherit;"></span>
       </div>
       <span id="chat-close" style="cursor:pointer; font-size:16px; font-weight:normal; opacity:0.8; padding:2px 6px; user-select:none; color:#ffffff;">✕</span>
     </div>
     
     <div id="chat-messages" style="flex:1; min-height:0; padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; background:#f9f9f9; font-size:13.5px; line-height:1.4; box-sizing:border-box; width:100%;">
-      <div style="align-self:flex-start; background:#f4f4f5; color:#09090b; padding:8px 12px; border-radius:12px 12px 12px 2px; max-width:80%; box-sizing:border-box; font-family:inherit; word-break:break-word; clear:both;">
-        Hello! How can we help you today?
+      <div id="chat-welcome" style="align-self:flex-start; background:#f4f4f5; color:#09090b; padding:8px 12px; border-radius:12px 12px 12px 2px; max-width:80%; box-sizing:border-box; font-family:inherit; word-break:break-word; clear:both;">
       </div>
     </div>
 
     <form id="chat-form" style="display:flex; padding:12px; border-top:1px solid #e4e4e7; background:#ffffff; gap:8px; margin:0; box-sizing:border-box; width:100%; align-items:center;">
       <input type="text" id="chat-input" placeholder="Type a message..." required style="flex:1; padding:8px 12px; border:1px solid #e4e4e7; border-radius:8px; font-size:13.5px; outline:none; background:#ffffff; color:#000000; font-family:inherit; box-sizing:border-box; height:36px; min-width:0;" />
-      <button type="submit" style="background:#000000; color:#ffffff; border:none; padding:0 16px; border-radius:8px; font-size:13.5px; cursor:pointer; font-weight:500; font-family:inherit; box-sizing:border-box; height:36px; display:inline-flex; align-items:center; justify-content:center;">Send</button>
+      <button id="chat-send" type="submit" style="background:#000000; color:#ffffff; border:none; padding:0 16px; border-radius:8px; font-size:13.5px; cursor:pointer; font-weight:500; font-family:inherit; box-sizing:border-box; height:36px; display:inline-flex; align-items:center; justify-content:center;">Send</button>
     </form>
 
-    <div style="padding:6px 12px 8px; border-top:1px solid #f4f4f5; background:#ffffff; text-align:center; color:#71717a; font-size:10px; line-height:1.4; box-sizing:border-box;">
+    <div id="pingit-brand-footer" style="padding:6px 12px 8px; border-top:1px solid #f4f4f5; background:#ffffff; text-align:center; color:#71717a; font-size:10px; line-height:1.4; box-sizing:border-box;">
       Powered by <a href="${brandUrl}" target="_blank" rel="noopener noreferrer" style="color:#18181b; font-weight:600; text-decoration:none;">pingit</a>
     </div>
   `;
 
   document.body.appendChild(box);
+  const brandFooter = box.querySelector("#pingit-brand-footer");
+  if (hideBranding) brandFooter.style.display = "none";
 
   // 3. Cache Element References
   const chatMessages = box.querySelector("#chat-messages");
   const chatForm = box.querySelector("#chat-form");
   const chatInput = box.querySelector("#chat-input");
   const chatClose = box.querySelector("#chat-close");
+  const chatHeader = box.querySelector("#chat-header");
+  const chatTitle = box.querySelector("#chat-title");
+  const chatWelcome = box.querySelector("#chat-welcome");
+  const chatSend = box.querySelector("#chat-send");
+  chatHeader.style.backgroundColor = primaryColor;
+  chatSend.style.backgroundColor = primaryColor;
+  chatTitle.textContent = businessName;
+  chatWelcome.textContent = welcomeMessage;
 
   function appendMessage(text, isUser = false) {
     const msgDiv = document.createElement("div");
     Object.assign(msgDiv.style, {
       alignSelf: isUser ? "flex-end" : "flex-start",
-      background: isUser ? "#000000" : "#efefef",
+      background: isUser ? primaryColor : "#efefef",
       color: isUser ? "#ffffff" : "#000000",
       padding: "8px 12px",
       borderRadius: isUser ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
@@ -145,6 +173,7 @@
     msgDiv.innerText = text;
     chatMessages.appendChild(msgDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    return msgDiv;
   }
 
   // 4. Open / Close Layout Actions Pipeline
@@ -197,23 +226,90 @@
         },
         body: JSON.stringify({
           userId: userId, 
+          chatbotId: chatbotId,
+          visitorId: visitorId,
           messageHistory: messageHistory,
         }),
       });
 
-      const result = await response.json();
       chatMessages.removeChild(loadingDiv);
 
-      if (result.success && result.data && result.data.reply) {
-        const botReply = result.data.reply;
-        appendMessage(botReply, false);
-        
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        const fallbackMessage =
+          response.status === 402
+            ? supportEmail
+              ? `This assistant is temporarily unable to answer. Please contact support at ${supportEmail}.`
+              : "This assistant is temporarily unable to answer. Please contact the website owner for help."
+            : result.message || "Sorry, I am having trouble connecting to the system right now.";
+        appendMessage(fallbackMessage, false);
+        return;
+      }
+
+      if (!response.body) throw new Error("The chat response could not be streamed.");
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      const assistantMessage = appendMessage("", false);
+      let pending = "";
+      let botReply = "";
+      let streamCompleted = false;
+      let streamFailed = false;
+
+      function handleStreamFrame(frame) {
+        const dataLine = frame
+          .replaceAll("\r", "")
+          .split("\n")
+          .find((line) => line.startsWith("data:"));
+        if (!dataLine) return;
+        let event;
+        try {
+          event = JSON.parse(dataLine.slice(5).trim());
+        } catch {
+          return;
+        }
+
+        if (event.type === "delta" && typeof event.text === "string") {
+          botReply += event.text;
+          assistantMessage.innerText = botReply;
+        } else if (event.type === "replace" && typeof event.text === "string") {
+          botReply = event.text;
+          assistantMessage.innerText = botReply;
+        } else if (event.type === "error") {
+          streamFailed = true;
+        } else if (event.type === "done") {
+          streamCompleted = true;
+          if (event.brandingRemovalActive && brandFooter) {
+            brandFooter.style.display = "none";
+          }
+        }
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        pending += decoder.decode(value, { stream: !done });
+        let frameBoundary = pending.indexOf("\n\n");
+        while (frameBoundary !== -1) {
+          handleStreamFrame(pending.slice(0, frameBoundary));
+          pending = pending.slice(frameBoundary + 2);
+          frameBoundary = pending.indexOf("\n\n");
+        }
+        if (done) {
+          if (pending.trim()) handleStreamFrame(pending);
+          break;
+        }
+      }
+
+      if (!streamCompleted || streamFailed) {
+        assistantMessage.innerText =
+          "Sorry, I am having trouble connecting to the system right now. Please try again.";
+        return;
+      }
+      if (botReply) {
         messageHistory.push({
           role: "model",
           parts: [{ text: botReply }],
         });
-      } else {
-        appendMessage("Sorry, I am having trouble connecting to the system right now.", false);
       }
     } catch (error) {
       console.error("Widget Network Error:", error);
