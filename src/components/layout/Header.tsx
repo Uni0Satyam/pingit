@@ -14,8 +14,8 @@ import {
   User,
   CreditCardIcon,
   LogOutIcon,
-  SettingsIcon,
   UserIcon,
+  LayoutDashboard,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -37,19 +37,18 @@ import {
 } from "@/components/ui/hover-card"
 
 type HeaderProps = {
-  userProfile: any;
+  userProfile?: { firstName?: string; lastName?: string } | null;
   loading?: boolean;
   onLogin?: () => void;
 };
 
 export const Header = ({ userProfile, loading, onLogin }: HeaderProps) => {
-  const firstName = userProfile?.firstName[0].toUpperCase();
-  const lastName = userProfile?.lastName[0].toUpperCase();
+  const firstName = userProfile?.firstName?.[0]?.toUpperCase();
+  const lastName = userProfile?.lastName?.[0]?.toUpperCase();
   const [openDialog, setOpenDialog] = useState(false);
   const router = useRouter();
   const [localLoading, setLocalLoading] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
-  const [openBilling, setOpenBilling] = useState(false);
 
 
   const handleLogin = () => {
@@ -80,13 +79,21 @@ export const Header = ({ userProfile, loading, onLogin }: HeaderProps) => {
         >
           ping<span className="text-zinc-400">it</span>
         </div>
+        <nav aria-label="Main navigation" className="hidden sm:block">
+          <a
+            className="text-sm text-zinc-600 transition hover:text-zinc-950"
+            href="#pricing"
+          >
+            Pricing
+          </a>
+        </nav>
         {userProfile ? (
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
                   <Button className="w-10 h-10 rounded-full flex items-center justify-center font-semibold hover:scale-105 transition hover:cursor-pointer">
-                    {firstName + lastName || <User size={16} />}
+                    {(firstName ?? "") + (lastName ?? "") || <User size={16} />}
                   </Button>
                 }
               />
@@ -109,25 +116,13 @@ export const Header = ({ userProfile, loading, onLogin }: HeaderProps) => {
                       </div>
                     </HoverCardContent>
                   </HoverCard>
-                  <DropdownMenuItem onMouseOver={() => setOpenBilling(!openBilling)} onMouseLeave={() => setOpenBilling(false)}>
+                  <DropdownMenuItem onClick={() => router.push("/dashboard?tab=billing")}>
                     <CreditCardIcon />
                     Billing
                   </DropdownMenuItem>
-                  <HoverCard open={openBilling} onOpenChange={setOpenBilling}>
-                    <HoverCardTrigger
-                      delay={10}
-                      closeDelay={100}
-                    />
-                    <HoverCardContent className="flex w-64 flex-col gap-0.5">
-                      <div className="font-semibold">Free</div>
-                      <div>
-                        Only for 1st phase tester till 2027
-                      </div>
-                    </HoverCardContent>
-                  </HoverCard>
                   <DropdownMenuItem onClick={() => router.push("/dashboard")}>
-                    <SettingsIcon />
-                    Settings
+                    <LayoutDashboard />
+                    Dashboard
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem

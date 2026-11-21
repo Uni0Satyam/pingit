@@ -19,6 +19,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Step, Steps } from "@/components/ui/steps";
 import { useRouter } from "next/navigation";
 import { Header } from "./layout/Header";
+import {
+  CREDIT_TOP_UP,
+  PLAN_CATALOG,
+  STARTER_BRANDING_ADDON,
+  getPlanPrice,
+  type BillingInterval,
+  type EffectiveSubscriptionPlan,
+  type PricingRegion,
+} from "@/lib/planEntitlements";
 
 type UserProfile = {
   id: string;
@@ -28,42 +37,47 @@ type UserProfile = {
 
 const features = [
   {
-    title: "Add the assistant",
-    desc: "Install the chat on your website with a single script, giving visitors a familiar way to ask for help.",
+    title: "Build the support widget",
+    desc: "Set up your product assistant, preview it, and install it with one script tag.",
   },
   {
-    title: "Share your business knowledge",
-    desc: "Add your FAQs, policies, delivery details, and other useful information so the assistant can answer common questions.",
+    title: "Test with your product knowledge",
+    desc: "Add your docs, FAQs, and product details so the assistant can answer the questions your users ask.",
   },
   {
-    title: "Give customers a next step",
-    desc: "When a question is outside the information you provided, the assistant directs customers to your support email.",
+    title: "Ship to your users",
+    desc: "Test locally, allow your production domain, then give visitors a clear path to your support email when they need a person.",
   },
 ];
 
 const setupSteps = [
   {
     number: "01",
-    title: "Add your business details",
-    desc: "Sign in and enter your business name, support email, and the information customers ask about most.",
+    title: "Create your support bot",
+    desc: "Add your product name, support email, and paste the docs or answers your users need.",
   },
   {
     number: "02",
-    title: "Review your answers",
-    desc: "Save your knowledge base, then preview how the chat experience will look on a website.",
+    title: "Test the experience",
+    desc: "Preview the widget and test its answers before putting it on your production site.",
   },
   {
     number: "03",
-    title: "Embed pingit",
-    desc: "Copy your unique embed snippet, paste it before your website’s closing body tag, and you’re ready to help visitors.",
+    title: "Deploy the widget",
+    desc: "Allow your local and production domains, then paste the embed snippet before the closing body tag.",
   },
 ];
 
 const commonQuestions = [
   {
+    question: "Can I onboard and test for free?",
+    answer:
+      "Yes. Free includes 200 monthly credits with a 20-credit daily cap, one bot, one registered domain, a 2 MB knowledge base, and Standard mode.",
+  },
+  {
     question: "What information should I add?",
     answer:
-      "Start with your FAQs, return or refund policies, delivery information, service details, and support hours. Clear, current information helps the assistant give useful answers.",
+      "Start with product setup, API and authentication guides, troubleshooting steps, and support policies. Clear, current information helps the assistant give useful answers.",
   },
   {
     question: "Can the assistant make up an answer?",
@@ -80,6 +94,23 @@ const commonQuestions = [
 const HomeClient = ({ userProfile }: { userProfile?: UserProfile }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [pricingRegion, setPricingRegion] = useState<PricingRegion>("global");
+  const [billingInterval, setBillingInterval] =
+    useState<BillingInterval>("monthly");
+
+  const selectPlan = (plan: EffectiveSubscriptionPlan) => {
+    const query = new URLSearchParams({
+      tab: "billing",
+      plan,
+      region: pricingRegion,
+      interval: billingInterval,
+    });
+    if (userProfile) {
+      router.push(`/dashboard?${query.toString()}`);
+    } else {
+      router.push("/login");
+    }
+  };
 
   const handleLogin = () => {
     setLoading(true);
@@ -103,12 +134,12 @@ const HomeClient = ({ userProfile }: { userProfile?: UserProfile }) => {
               transition={{ duration: 0.7 }}
             >
               <h1 className="text-4xl md:text-5xl font-semibold leading-tight">
-                AI Customer support <br />
-                Built for modern websites
+                Ship AI support chat <br />
+                for your product
               </h1>
               <p className="mt-6 text-lg text-zinc-600 max-w-xl">
-                Add a powerful AI chatbot to your website in one click <br /> Let your
-                customer get instant answers using your own business knowledge.
+                Add a support widget with one script. Test it locally, add your
+                product docs, then deploy it to your site.
               </p>
               <div className="mt-10 flex gap-4">
                 {userProfile ? (
@@ -241,8 +272,8 @@ const HomeClient = ({ userProfile }: { userProfile?: UserProfile }) => {
               Get pingit on the job.
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-center leading-7 text-zinc-600">
-              No complicated workflow - Give business information, review the
-              experience, then add the chatbot to your website.
+              Create a bot, test the answers, and ship the widget with a small
+              embed snippet.
             </p>
             <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
               {setupSteps.map((step) => (
@@ -264,6 +295,157 @@ const HomeClient = ({ userProfile }: { userProfile?: UserProfile }) => {
                 </Card>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section
+          id="pricing"
+          className="scroll-mt-20 border-t border-zinc-200 bg-zinc-50 px-6 py-24"
+        >
+          <div className="mx-auto max-w-6xl">
+            <p className="text-center text-sm font-medium uppercase tracking-[0.18em] text-zinc-500">
+              Transparent plans for every stage
+            </p>
+            <h2 className="mt-3 text-center text-3xl font-semibold tracking-tight">
+              Usage that scales with your product
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-center leading-7 text-zinc-600">
+              All plans use a clear monthly credit allowance. Choose the billing
+              country to see the matching price book.
+            </p>
+
+            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <div role="group" aria-label="Billing country" className="flex flex-wrap justify-center gap-2">
+                {([
+                  ["global", "Global · USD"],
+                  ["europe", "Europe · EUR"],
+                  ["india", "India · INR"],
+                ] as const).map(([region, label]) => (
+                  <Button
+                    key={region}
+                    type="button"
+                    size="sm"
+                    variant={pricingRegion === region ? "default" : "outline"}
+                    aria-pressed={pricingRegion === region}
+                    onClick={() => setPricingRegion(region)}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+              <div role="group" aria-label="Billing interval" className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={billingInterval === "monthly" ? "default" : "outline"}
+                  aria-pressed={billingInterval === "monthly"}
+                  onClick={() => setBillingInterval("monthly")}
+                >
+                  Monthly
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={billingInterval === "annual" ? "default" : "outline"}
+                  aria-pressed={billingInterval === "annual"}
+                  onClick={() => setBillingInterval("annual")}
+                >
+                  Annual · Save 20%
+                </Button>
+              </div>
+            </div>
+
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {(["free", "starter", "pro", "business"] as const).map((plan) => {
+                const definition = PLAN_CATALOG[plan];
+                const price = getPlanPrice(plan, pricingRegion, billingInterval);
+                const credits = definition.credits[
+                  pricingRegion === "india" ? "india" : "global"
+                ];
+                const priceLabel = new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: price.currency,
+                  maximumFractionDigits: price.currency === "INR" ? 0 : 2,
+                }).format(price.amount);
+                const planFeatures = plan === "free"
+                  ? [
+                      "Standard mode · 1 credit per reply",
+                      "Up to 20 credits per day",
+                      "1 bot · 1 registered domain · 2 MB knowledge base",
+                      "Brand badge stays on",
+                    ]
+                  : plan === "starter"
+                    ? [
+                        "Standard mode · 1 credit per reply",
+                        "Starter branding-removal add-on available",
+                        "Smart mode and Pro features start at Pro",
+                      ]
+                    : [
+                        "Standard mode · 1 credit; Smart mode · 4 credits",
+                        "Lead capture, integrations, and human handoff",
+                        "Branding removal included",
+                      ];
+
+                return (
+                  <article
+                    key={plan}
+                    className={`flex h-full flex-col rounded-2xl border bg-white p-6 shadow-xs ${plan === "pro" ? "border-indigo-300 ring-1 ring-indigo-100" : "border-zinc-200"}`}
+                  >
+                    <h3 className="text-lg font-semibold text-zinc-900">
+                      {definition.name}
+                    </h3>
+                    <p className="mt-4 text-3xl font-semibold tracking-tight text-zinc-950">
+                      {priceLabel}
+                      <span className="ml-2 text-sm font-normal text-zinc-500">
+                        / {billingInterval === "annual" ? "year" : "month"}
+                      </span>
+                    </p>
+                    {pricingRegion === "europe" && (
+                      <p className="mt-1 text-xs text-zinc-500">VAT excluded</p>
+                    )}
+                    <p className="mt-3 text-sm font-medium text-zinc-700">
+                      {credits.toLocaleString()} credits / month
+                    </p>
+                    <ul className="mt-5 flex-1 space-y-3 text-sm leading-5 text-zinc-600">
+                      {planFeatures.map((feature) => (
+                        <li key={feature}>{feature}</li>
+                      ))}
+                    </ul>
+                    <Button
+                      type="button"
+                      className="mt-6 w-full"
+                      variant={plan === "free" ? "outline" : "default"}
+                      onClick={() => (plan === "free" && userProfile ? router.push("/dashboard") : selectPlan(plan))}
+                      disabled={loading}
+                    >
+                      {plan === "free"
+                        ? userProfile ? "Open dashboard" : "Start free"
+                        : userProfile ? `Choose ${definition.name}` : "Create free account"}
+                    </Button>
+                  </article>
+                );
+              })}
+            </div>
+            <div className="mx-auto mt-6 grid max-w-4xl gap-3 text-center text-sm leading-6 text-zinc-600 sm:grid-cols-2">
+              <p>
+                Extra credits: {CREDIT_TOP_UP.credits.toLocaleString()} for{" "}
+                {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: CREDIT_TOP_UP.price[pricingRegion].currency,
+                  maximumFractionDigits: 0,
+                }).format(CREDIT_TOP_UP.price[pricingRegion].amount)}.
+              </p>
+              <p>
+                Starter branding removal: {new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: STARTER_BRANDING_ADDON.price[pricingRegion].currency,
+                  maximumFractionDigits: 0,
+                }).format(STARTER_BRANDING_ADDON.price[pricingRegion].amount)} / month; included in Pro and Business.
+              </p>
+            </div>
+            <p className="mx-auto mt-4 max-w-4xl text-center text-xs leading-5 text-zinc-500">
+              Each successful Standard reply costs 1 credit; Smart costs 4. The cost estimate assumes 3,000 input and 250 output tokens and can vary with context and model thinking. Failed generations are refunded. EU prices exclude VAT; taxes and GST apply where required.
+            </p>
           </div>
         </section>
 
@@ -335,6 +517,9 @@ const HomeClient = ({ userProfile }: { userProfile?: UserProfile }) => {
                 href="#how-it-works"
               >
                 How it works
+              </a>
+              <a className="transition hover:text-zinc-950" href="#pricing">
+                Pricing
               </a>
               <a className="transition hover:text-zinc-950" href="#faq">
                 FAQ

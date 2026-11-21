@@ -1,16 +1,26 @@
-import EmbedClient from "@/components/EmbedClient";
-import { getSession } from "../utils/getSession";
+import { Suspense } from "react";
+import { connection } from "next/server";
+import { redirect } from "next/navigation";
 
-export const instant = false;
-
-const page = async () => {
-  const session = await getSession();
-
-  return (
-    <>
-      <EmbedClient userProfile={session?.user?.userProfile!}/>
-    </>
-  );
+type EmbedPageProps = {
+  searchParams: Promise<{ chatbotId?: string }>;
 };
 
-export default page;
+export default async function EmbedPage({ searchParams }: EmbedPageProps) {
+  return (
+    <Suspense fallback={null}>
+      <EmbedRedirect searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function EmbedRedirect({
+  searchParams,
+}: EmbedPageProps): Promise<never> {
+  await connection();
+  const { chatbotId } = await searchParams;
+  if (!chatbotId) {
+    redirect("/dashboard?tab=embed");
+  }
+  redirect(`/dashboard?tab=embed&chatbotId=${encodeURIComponent(chatbotId)}`);
+}

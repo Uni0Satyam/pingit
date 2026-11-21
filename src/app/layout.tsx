@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toast";
 export const metadata: Metadata = {
-  title: "pingit — quick answers for your customers",
+  title: "pingit - Personalized embeddable chatbots, so you don't have to create from scratch for your next project",
   icons: { icon: "/icon.svg" },
   description:
     "Meet pingit: a friendly AI support assistant that answers customer questions using your business knowledge.",

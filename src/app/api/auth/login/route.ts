@@ -1,8 +1,5 @@
-import { scalekit } from "@/lib/scalekit";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
-    const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`
-    const url = scalekit.getAuthorizationUrl(redirectUrl)
-    return NextResponse.redirect(url);
+export async function GET(request: Request) {
+  return NextResponse.redirect(new URL("/login", request.url));
 }

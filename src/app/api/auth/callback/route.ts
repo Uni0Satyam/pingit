@@ -1,28 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { scalekit } from "@/lib/scalekit";
-
-const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback`;
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const code = searchParams.get("code");
+  const destination = new URL("/dashboard", req.url);
+  const errorDestination = new URL("/login", req.url);
+  const code = req.nextUrl.searchParams.get("code");
+  const providerError = req.nextUrl.searchParams.get("error");
 
-  if (!code) {
-    return NextResponse.json({ message: "Code not found" }, { status: 400 });
+  if (providerError) {
+    errorDestination.searchParams.set("error", "oauth");
+    return NextResponse.redirect(errorDestination);
   }
 
-  const authResult = await scalekit.authenticateWithCode(code, redirectUrl);
+  if (!code) {
+    errorDestination.searchParams.set("error", "confirmation");
+    return NextResponse.redirect(errorDestination);
+  }
 
-  const response = NextResponse.redirect(
-    `${process.env.NEXT_PUBLIC_APP_URL}`,
-  )
+  const supabase = await createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-  response.cookies.set("access_token", authResult.accessToken, {
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000,
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-  });
+  if (error) {
+    errorDestination.searchParams.set("error", "oauth");
+    return NextResponse.redirect(errorDestination);
+  }
 
-  return response;
+  return NextResponse.redirect(destination);
 }
